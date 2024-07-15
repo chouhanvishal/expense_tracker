@@ -18,7 +18,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Expense
-        fields = ['amount', 'description', 'date_created', 'tax', 'participants']
+        fields = ['amount', 'created_by', 'description', 'date_created', 'tax', 'participants']
 
 
     def create(self, validated_data):
@@ -34,7 +34,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
             owes_share = total_amount / total_participants - paid_share
             participant = participant_data['participant']  # Extract the participant ID
             if participant not in friends:
-                raise serializers.ValidationError(f"Participant {participant.username} is not in the list of friends")
+                raise Exception(f"Participant {participant.username} is not in the list of friends")
 
             ExpenseParticipant.objects.create(expense=expense, participant=participant, paid_share=paid_share, owes_share=owes_share)
 

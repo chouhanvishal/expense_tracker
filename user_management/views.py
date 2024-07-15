@@ -102,7 +102,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         - Response: HTTP response indicating success or failure.
         """
         try:
-            instance = self.get_object()
+            instance = Invitation.objects.get(id=kwargs['pk'])
             if request.user == instance.to_user:
                 if 'is_accepted' in request.data and request.data['is_accepted']:
                     instance.is_accepted = True
@@ -110,11 +110,13 @@ class InvitationViewSet(viewsets.ModelViewSet):
                     instance.from_user.friends.add(instance.to_user)
                     instance.to_user.friends.add(instance.from_user)
                     logger.info(f"Invitation accepted: {instance}")
-                    return super().update(request, *args, **kwargs)
+                    return Response({"detail": "Invitation accepted."}, status=status.HTTP_202_ACCEPTED)
                 else:
                     return Response({"detail": "Please provide 'is_accepted' value as True or False."}, status=status.HTTP_403_FORBIDDEN)
             else:
                 return Response({"detail": "You are not authorized to update this invitation."}, status=status.HTTP_403_FORBIDDEN)
+        except Invitation.DoesNotExist:
+            return Response({"detail": "Invitation does not exist"}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             logger.error(f"Error updating invitation: {str(e)}")
             return Response({"detail": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
